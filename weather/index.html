@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>weather</title>
+
+    <!-- script for icons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+
+
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li>
+                    <h1>Weather Today</h1>
+                </li>
+                <li><img src="./weatherimg/icons8-sun.gif" alt=""></li>
+            </ul>
+            <div>
+                <input type="search" placeholder="search by city..." id="city">
+                <button id="btn"><ion-icon name="search-outline"></ion-icon></button>
+            </div>
+        </nav>
+    </header>
+
+    <section id="current_Day_Time">
+        <div id="daytimeDiv">
+
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- <div id="weatherDetail">
+            <div class="upper">
+               <div class="timeZone"></div>
+               <div class="weatherIcon"></div>
+        </div>
+        <div id="info"></div>
+        </div> -->
+    </div>
+    <div class="weatherBottom"></div>
+
+
+</body>
+
+</html>
+<script>
+
+    let daytimediv = document.getElementById('daytimeDiv')
+    let timeZone = document.querySelector('.timeZone')
+    let weatherIcon = document.querySelector('.weatherIcon')
+    let days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    // let dayArr=['Sun', 'Mon', 'Tue','Wed', 'Thur', 'Fri', 'Sat']
+    let months = ["Jan", "Feb", "March", "April", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"]
+
+
+    setInterval(() => {
+        let newDate = new Date();
+        let mins = newDate.getMinutes();
+        let hours = newDate.getHours();
+        let ampm = hours >= 12 ? 'PM' : 'AM'
+        let hour12 = hours > 12 ? hours % 12 : hours
+        hour12 == 0 ? (hour12 = 12) : hour12
+        let day = newDate.getDay();
+        let date = newDate.getDate();
+        let month = newDate.getMonth();
+
+        if (mins < 10) {
+            daytimediv.innerHTML = `<p>${hour12}:0${mins} ${ampm} </p>
+                                    <p>${days[day]}, ${date} ${months[month]} </p>`
+
+            // timeZone.innerHTML=`<p>${hour12}:0${mins} ${ampm} </p>
+            //                         <p>${days[day]}, ${date} ${months[month]} </p>`
+        } else {
+            daytimediv.innerHTML = `<p> ${hour12}:${mins} ${ampm}</p>
+                                    <p>${days[day]}, ${date} ${months[month]} </p>`
+            // timeZone.innerHTML=`<p> ${hour12}:${mins} ${ampm}</p>
+            //                         <p>${days[day]}, ${date} ${months[month]} </p>`
+        }
+
+    }, 1000);
+
+    let apiKey = '25ba1b12297eceffed26492ff739c8fc'
+    let mapArea = null
+    document.querySelector(".weatherBottom").style.display='none'
+
+    let showWeather = async () => {
+        let cityNameVal = document.getElementById('city').value;
+        mapArea = cityNameVal;
+        document.querySelector('.container').textContent = ''
+        document.querySelector(".weatherBottom").innerHTML = "";
+        try {
+            let result = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cityNameVal}&appid=${apiKey}`)
+            let response = await result.json();
+            document.getElementById('current_Day_Time').style.display = 'none'
+            // console.log(response)
+            displayWeather(response)
+
+           
+            let secSearch = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${cityNameVal}&units=metric&appid=${apiKey}`);
+            let data = await secSearch.json();
+            console.log(data);
+            forcast(data)
+        }
+        catch (error) {
+            console.log(error)
+        }
+    }
+    document.getElementById('btn').addEventListener('click', showWeather);
+
+    function displayWeather(data) {
+        let weatherDetail = document.createElement('div')
+        weatherDetail.id = 'weatherDetail'
+
+        let upper = document.createElement('div')
+        upper.classList = 'upper'
+
+        let timeZone = document.createElement('div')
+        timeZone.classList = 'timeZone'
+        setInterval(() => {
+            let newDate = new Date();
+            let mins = newDate.getMinutes();
+            let hours = newDate.getHours();
+            let ampm = hours >= 12 ? 'PM' : 'AM'
+            let hour12 = hours > 12 ? hours % 12 : hours
+            hour12 == 0 ? (hour12 = 12) : hour12
+            let day = newDate.getDay();
+            let date = newDate.getDate();
+            let month = newDate.getMonth();
+
+            if (mins < 10) {
+                timeZone.innerHTML = `<p>${hour12}:0${mins} ${ampm} </p>
+                                     <p>${days[day]}, ${date} ${months[month]} </p>`
+            } else {
+                timeZone.innerHTML = `<p> ${hour12}:${mins} ${ampm}</p>
+                                     <p>${days[day]}, ${date} ${months[month]} </p>`
+            }
+
+        }, 1000);
+
+
+        let weatherIcon = document.createElement('div')
+        weatherIcon.classList = 'weatherIcon'
+
+        let info = document.createElement('div')
+        info.id = 'info'
+
+        let icon = document.createElement('img')
+        icon.classList = 'iconimg'
+        icon.src = ` https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`
+
+        let iconDes = document.createElement('p')
+        iconDes.textContent = data.weather[0].main;
+        iconDes.id = 'descripiton'
+
+        let cityName = document.createElement('h1')
+        cityName.textContent = data.name;
+
+        let temp = document.createElement('p')
+        temper = ((data.main.temp) - 273.15).toFixed(2)
+        temp.textContent = `Temperature ${temper} °C`;
+
+        let wind = document.createElement('p')
+        wind.textContent = `Wind ${data["wind"].speed}m/sec;`
+
+        let pressure = document.createElement('p')
+        pressure.textContent = `Pressure ${data.main.pressure} hpa`;
+
+        let humidity = document.createElement('p')
+        humidity.textContent = `Humidity ${data.main.humidity}%`;
+
+        let sunrise = document.createElement('p')
+        let rise = data.sys.sunrise;
+
+        let date = new Date(rise * 1000)
+        let hr = date.getHours()
+        let hr12 = hr > 12 ? hr % 12 : hr
+        let AmPm = hr >= 12 ? "AM" : 'PM'
+        let min = date.getMinutes()
+        if (min < 10) {
+            sunrise.textContent = `Sunrise ${hr12}:0${min} ${AmPm}`;
+        } else {
+            sunrise.textContent = `Sunrise ${hr12}:${min} ${AmPm}`;
+        }
+
+
+        let sunset = document.createElement('p')
+        let set = data.sys.sunset;
+        let date1 = new Date(set * 1000)
+        let hr1 = date1.getHours()
+        let hr112 = hr1 > 12 ? hr1 % 12 : hr1
+        let AmPm1 = hr1 >= 12 ? "AM" : 'PM'
+        let min1 = date1.getMinutes()
+        if (min1 < 10) {
+            sunset.textContent = `Sunset ${hr112}:0${min1} ${AmPm1}`;
+        } else {
+            sunset.textContent = `Sunset ${hr112}:${min1} ${AmPm1}`;
+        }
+
+        let weatherMap = document.createElement('div')
+        weatherMap.id = 'weatherMap'
+        let frame = document.createElement("iframe")
+        frame.src = `https://maps.google.com/maps?q=${mapArea}&t=&z=13&ie=UTF8&iwloc=&output=embed`
+        frame.width = '620px'
+        frame.height = '325px'
+
+        weatherIcon.append(icon, iconDes)
+        info.append(cityName, temp, pressure, humidity, wind, sunrise, sunset)
+        upper.append(timeZone, weatherIcon)
+        weatherDetail.append(upper, info)
+        weatherMap.append(frame)
+        document.querySelector('.container').append(weatherDetail, weatherMap)
+    }
+
+
+     function forcast(data){
+
+        document.querySelector(".weatherBottom").style.display='flex'
+        for (let i = 5; i < 40; i += 8) {
+            let card = document.createElement("div");
+            card.setAttribute("class", "forecastCards");
+
+            let icon = document.createElement("img");
+            icon.src = `http://openweathermap.org/img/wn/${data["list"][i].weather[0].icon}@2x.png`;
+
+            let desc = document.createElement("p");
+            desc.textContent = data["list"][i].weather[0].description;
+
+            
+            let date = document.createElement("h2");
+            date.textContent = data["list"][i].dt_txt.split(" ")[0];
+
+            let minMax = document.createElement("div");
+            minMax.setAttribute("id", "minMaxTemp");
+
+            let minTemp = document.createElement("p");
+            minTemp.textContent = "Min Temp " + data["list"][i].main.temp_min + " °C";
+            
+
+            let maxTemp = document.createElement("p");
+            maxTemp.textContent = "Max Temp " + data["list"][i].main.temp_max + " °C";
+    // console.log(data["list"][i].main.temp_min + " °C" + data["list"][i].main.temp_max + " °C")
+            minMax.append(minTemp, maxTemp);
+            card.append(date, icon, desc, minMax);
+            document.querySelector(".weatherBottom").append(card);
+        }
+     }
+
+        
+     
+    
+
+</script>
